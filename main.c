@@ -19,6 +19,15 @@ int Hash(Hashmap *hashmap, size_t key) {
 }
 int inithashmap(Hashmap** retrn, size_t size) /*双指针传递地址*/{
     //动态分配内存
+    if (size < 0) {
+        printf("init hashmap with size -1\n");
+        return -1;
+    }
+    *(retrn) = (Hashmap*)malloc(sizeof(Hashmap));
+    if (*(retrn) == NULL) {
+        printf("fuck clang in init 1\n");
+        return -1;
+    }
     *(retrn) = (Hashmap*)malloc(sizeof(Hashmap));
     (*retrn)->size = size;
     (*retrn)->count = 0;
@@ -48,9 +57,49 @@ int insert(Hashmap *hashmap, size_t key, size_t value) {
         printf("Pair is NULL\n");
         return -1;
     }
-
-}
-int main(void) {
-
+    //头插法
+    tmp->key = key;
+    tmp->value = value;
+    tmp->next = hashmap->buckets[index];
+    hashmap->buckets[index] = tmp;
+    hashmap->count++;
     return 0;
+}
+int find(Hashmap *hashmap, size_t key,int *value) {
+    if (hashmap == NULL || value == NULL) {
+        printf("Hashmap is NULL\n");
+        return -1;
+    }
+    int index = Hash(hashmap, key);
+    Pair *curr = hashmap->buckets[index];
+    while (curr != NULL) {
+        if (curr->key == key) {
+            *value = curr->value;
+            return 0;
+        }
+        curr = curr->next;
+    }
+    return 1;
+}
+int* twoSum(int* nums, int numsSize, int target, int* returnSize) {
+    *returnSize = 2;
+    int* back = (int*)malloc(sizeof(int) * *returnSize);
+    if (back == NULL) {  // 补充malloc失败检查
+        printf("malloc back failed\n");
+        *returnSize = 0;
+        return NULL;
+    }
+    back[0] = 0; back[1] = 0;
+    Hashmap *map;
+    inithashmap(&map,numsSize);
+    for (size_t i =0; i < numsSize; i++) {
+        int get = 0; // fuck clang
+        if (find(map,target - nums[i],&get) == 0) {
+            back[0] = get;
+            back[1] = i;
+            break;
+        }
+        insert(map,nums[i],i);
+    }
+    return back;
 }
